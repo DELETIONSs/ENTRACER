@@ -3,53 +3,6 @@ local function grab(name)
     return if cloneref then cloneref(service) else service
 end
 
-local function loadWithTimeout(url: string, timeout: number?): ...any
-	assert(type(url) == "string", "Expected string, got " .. type(url))
-	timeout = timeout or 5
-	local requestCompleted = false
-	local success, result = false, nil
-
-	local requestThread = task.spawn(function()
-		local fetchSuccess, fetchResult = pcall(game.HttpGet, game, url) -- game:HttpGet(url)
-		-- If the request fails the content can be empty, even if fetchSuccess is true
-		if not fetchSuccess or #fetchResult == 0 then
-			if #fetchResult == 0 then
-				fetchResult = "Empty response" -- Set the error message
-			end
-			success, result = false, fetchResult
-			requestCompleted = true
-			return
-		end
-		local content = fetchResult -- Fetched content
-		local execSuccess, execResult = pcall(function()
-			return loadstring(content)()
-		end)
-		success, result = execSuccess, execResult
-		requestCompleted = true
-	end)
-
-	local timeoutThread = task.delay(timeout, function()
-		if not requestCompleted then
-			warn(`Request for {url} timed out after {timeout} seconds`)
-			task.cancel(requestThread)
-			result = "Request timed out"
-			requestCompleted = true
-		end
-	end)
-
-	-- Wait for completion or timeout
-	while not requestCompleted do
-		task.wait()
-	end
-	-- Cancel timeout thread if still running when request completes
-	if coroutine.status(timeoutThread) ~= "dead" then
-		task.cancel(timeoutThread)
-	end
-	if not success then
-		warn(`Failed to process {url}: {result}`)
-	end
-	return if success then result else nil
-end
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -78,62 +31,23 @@ local OrionLib = {
 }
 
 local Icons = {}
-		local Success, Response = pcall(function()
-	Icons = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua")()
+
+local Success, Response = pcall(function()
+	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
 end)
-
-
 
 if not Success then
 	warn("\n - Failed to load Feather Icons. Error code: " .. Response .. "\n")
 end	
 
--- Get icon data from the Lucide icon library
-local function GetIcon(name: string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}?
-	if not Icons then
-		warn("Lucide Icons: Cannot use icons as icons library is not loaded")
-		return
-	end
-
-	name = string.match(string.lower(name), "^%s*(.-)%s*$") -- trim spaces
-	local sizedicons = Icons["48px"]
-	local r = sizedicons and sizedicons[name]
-
-	if not r then
-		error(`Lucide Icons: Failed to find icon by the name of "{name}"`, 2)
-	end
-
-	local rirs, riro = r[2], r[3]
-
-	if type(r[1]) ~= "number" or type(rirs) ~= "table" or type(riro) ~= "table" then
-		error("Lucide Icons: Internal error: Invalid auto-generated asset entry")
-	end
-
-	return {
-		id = r[1],
-		imageRectSize = Vector2.new(rirs[1], rirs[2]),
-		imageRectOffset = Vector2.new(riro[1], riro[2])
-	}
-end
-
--- Get asset URI from ID
-local function getAssetUri(id: any): string
-	if type(id) == "number" then
-		return "rbxassetid://" .. id
-	elseif type(id) == "string" and Icons then
-		local ok, data = pcall(getIcon, id)
-		if ok and data then
-			return "rbxassetid://" .. data.id
-		end
-	elseif type(id) == "string" and not Icons then
-		warn("Rayfield | Cannot use Lucide icons as icons library is not loaded")
+local function GetIcon(IconName)
+	if Icons[IconName] ~= nil then
+		return Icons[IconName]
 	else
-		warn("Rayfield | The icon argument must be a number or a valid icon name (string)")
+		return nil
 	end
-	return "rbxassetid://0" -- fallback
-end
-
--- Make a UI draggable with optional taptic feedback
+end   
+	
 local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enableTaptic, tapticOffset, hiddenState, useMobileSizing)
 	local dragging = false
 	local relative = nil
