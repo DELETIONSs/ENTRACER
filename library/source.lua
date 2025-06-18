@@ -3,6 +3,8 @@ local function grab(name)
     return if cloneref then cloneref(service) else service
 end
 
+
+local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
