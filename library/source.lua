@@ -55,104 +55,81 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local GuiService = game:GetService("GuiService")
 
-local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enableTaptic, tapticOffset, hiddenState, useMobileSizing)
+local function makeDraggable(object, dragObject, enableTaptic, tapticOffset)
 	local dragging = false
 	local relative = nil
-	local offset = Vector2.zero
 
+	local offset = Vector2.zero
 	local screenGui = object:FindFirstAncestorWhichIsA("ScreenGui")
 	if screenGui and screenGui.IgnoreGuiInset then
-		offset += GuiService:GetGuiInset()
+		offset += getService('GuiService'):GetGuiInset()
 	end
 
-	-- Store hover connections to avoid duplicate connects
-	local hoverConnEntered, hoverConnLeft
-	local function connectHoverAnimations()
-		if dragBar and enableTaptic and (not hoverConnEntered and not hoverConnLeft) then
-			hoverConnEntered = dragBar.MouseEnter:Connect(function()
-				if not dragging and not hiddenState then
-					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-						BackgroundTransparency = 0.5,
-						Size = UDim2.new(0, 120, 0, 4)
-					}):Play()
+	local function connectFunctions()
+		if dragBar and enableTaptic then
+			dragBar.MouseEnter:Connect(function()
+				if not dragging and not Hidden then
+					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.5, Size = UDim2.new(0, 120, 0, 4)}):Play()
 				end
 			end)
-			hoverConnLeft = dragBar.MouseLeave:Connect(function()
-				if not dragging and not hiddenState then
-					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-						BackgroundTransparency = 0.7,
-						Size = UDim2.new(0, 100, 0, 4)
-					}):Play()
+
+			dragBar.MouseLeave:Connect(function()
+				if not dragging and not Hidden then
+					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.7, Size = UDim2.new(0, 100, 0, 4)}):Play()
 				end
 			end)
 		end
 	end
 
-	connectHoverAnimations()
+	connectFunctions()
 
-	-- Drag start
-	local inputEnded
 	dragObject.InputBegan:Connect(function(input, processed)
 		if processed then return end
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+
+		local inputType = input.UserInputType.Name
+		if inputType == "MouseButton1" or inputType == "Touch" then
 			dragging = true
+
 			relative = object.AbsolutePosition + object.AbsoluteSize * object.AnchorPoint - UserInputService:GetMouseLocation()
-
-			if enableTaptic and not hiddenState then
-				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-					Size = UDim2.new(0, 110, 0, 4),
-					BackgroundTransparency = 0
-				}):Play()
+			if enableTaptic and not Hidden then
+				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 110, 0, 4), BackgroundTransparency = 0}):Play()
 			end
 		end
 	end)
 
-	-- Drag end
-	inputEnded = UserInputService.InputEnded:Connect(function(input)
+	local inputEnded = UserInputService.InputEnded:Connect(function(input)
 		if not dragging then return end
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-			-- reconnect hover animations if needed (but connections only once now)
-			-- connectHoverAnimations() -- no longer needed since connected once
 
-			if enableTaptic and not hiddenState then
-				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-					Size = UDim2.new(0, 100, 0, 4),
-					BackgroundTransparency = 0.7
-				}):Play()
+		local inputType = input.UserInputType.Name
+		if inputType == "MouseButton1" or inputType == "Touch" then
+			dragging = false
+
+			connectFunctions()
+
+			if enableTaptic and not Hidden then
+				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 100, 0, 4), BackgroundTransparency = 0.7}):Play()
 			end
 		end
 	end)
 
-	-- Follow mouse/touch
 	local renderStepped = RunService.RenderStepped:Connect(function()
-		if dragging and not hiddenState then
-			local mouse = UserInputService:GetMouseLocation()
-			local pos = mouse + relative + offset
-
+		if dragging and not Hidden then
+			local position = UserInputService:GetMouseLocation() + relative + offset
 			if enableTaptic and tapticOffset then
-				TweenService:Create(object, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-					Position = UDim2.fromOffset(pos.X, pos.Y)
-				}):Play()
-
-				TweenService:Create(dragObject.Parent, TweenInfo.new(0.05, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
-					Position = UDim2.fromOffset(pos.X, pos.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))
-				}):Play()
+				TweenService:Create(object, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.fromOffset(position.X, position.Y)}):Play()
+				TweenService:Create(dragObject.Parent, TweenInfo.new(0.05, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.fromOffset(position.X, position.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))}):Play()
 			else
 				if dragBar and tapticOffset then
-					dragBar.Position = UDim2.fromOffset(pos.X, pos.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))
+					dragBar.Position = UDim2.fromOffset(position.X, position.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))
 				end
-				object.Position = UDim2.fromOffset(pos.X, pos.Y)
+				object.Position = UDim2.fromOffset(position.X, position.Y)
 			end
 		end
 	end)
 
-	-- Cleanup
 	object.Destroying:Connect(function()
 		if inputEnded then inputEnded:Disconnect() end
 		if renderStepped then renderStepped:Disconnect() end
-		if hoverConnEntered then hoverConnEntered:Disconnect() end
-		if hoverConnLeft then hoverConnLeft:Disconnect() end
 	end)
 end
 
