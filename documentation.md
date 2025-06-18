@@ -2,7 +2,7 @@
 
 ## Booting the Library
 ```lua
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/DELETIONSs/ENTRACER/refs/heads/main/library/source.lua')))()
 ```
 
 
