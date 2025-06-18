@@ -50,13 +50,12 @@ local function loadWithTimeout(url: string, timeout: number?): ...any
 	end
 	return if success then result else nil
 end
-local HttpService = grab('HttpService')
-local UserInputService = grab("UserInputService")
-local TweenService = grab("TweenService")
-local RunService = grab("RunService")
-local LocalPlayer = grab("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local HttpService = grab("HttpService")
+local HttpService = game:GetService("HttpService")
 
 local OrionLib = {
 	Elements = {},
@@ -78,18 +77,19 @@ local OrionLib = {
 	SaveCfg = false
 }
 
---Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
 local Icons = {}
-local Success, Response = pcall(function()
-	Icons = loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
+		local Success, Response = pcall(function()
+	Icons = loadstring(game:HttpGet("https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua")()
 end)
+
+
 
 if not Success then
 	warn("\n - Failed to load Feather Icons. Error code: " .. Response .. "\n")
-end
+end	
 
 -- Get icon data from the Lucide icon library
-local function getIcon(name: string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}?
+local function GetIcon(name: string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}?
 	if not Icons then
 		warn("Lucide Icons: Cannot use icons as icons library is not loaded")
 		return
