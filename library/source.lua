@@ -260,31 +260,6 @@ else
 	end
 end
 
-if gethui then
-	Orion.Parent = gethui()
-elseif syn and syn.protect_gui then
-	syn.protect_gui(Orion)
-	Orion.Parent = CoreGui
-elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
-	Orion.Parent = CoreGui:FindFirstChild("RobloxGui")
-elseif not useStudio then
-	Orion.Parent = CoreGui
-end
-
-if gethui then
-	for _, Interface in ipairs(gethui():GetChildren()) do
-		if Interface.Name == Orion.Name and Interface ~= Orion then
-			Interface:Destroy()
-		end
-	end
-else
-	for _, Interface in ipairs(CoreGui:GetChildren()) do
-		if Interface.Name == Orion.Name and Interface ~= Orion then
-			Interface:Destroy()
-		end
-	end
-end
-
 function OrionLib:IsRunning()
 	if gethui then
 		return Orion.Parent == gethui()
@@ -312,7 +287,6 @@ task.spawn(function()
 		Connection:Disconnect()
 	end
 end)
-
 local function MakeDraggable(DragPoint, Main)
 	pcall(function()
 		local Dragging, DragInput, MousePos, FramePos = false
