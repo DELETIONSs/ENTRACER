@@ -57,7 +57,6 @@ local function loadWithTimeout(url: string, timeout: number?): ...any
 	return if success then result else nil
 end
 local HttpService = grab('HttpService')
-local RunService = grab('RunService')
 local UserInputService = grab("UserInputService")
 local TweenService = grab("TweenService")
 local RunService = grab("RunService")
