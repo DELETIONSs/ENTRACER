@@ -1,5 +1,4 @@
-# Orion Library
-This documentation is for the stable release of Orion Library.
+# Orion Library (Enforcer's Version)
 
 ## Booting the Library
 ```lua
