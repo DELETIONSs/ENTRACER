@@ -490,64 +490,100 @@ local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
 
 function OrionLib:MakeNotification(NotificationConfig)
 	spawn(function()
-		NotificationConfig.Name = NotificationConfig.Name or "Notification"
-		NotificationConfig.Content = NotificationConfig.Content or "Test"
-		NotificationConfig.Image = NotificationConfig.Image or "rbxassetid://4384403532"
-		NotificationConfig.Time = NotificationConfig.Time or 15
+		-- Defaults
+		local name = NotificationConfig.Name or "Notification"
+		local content = NotificationConfig.Content or "Test"
+		local image = NotificationConfig.Image or "rbxassetid://4384403532"
+		local duration = NotificationConfig.Time or 15
 
 		local NotificationParent = SetProps(MakeElement("TFrame"), {
 			Size = UDim2.new(1, 0, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
-			Parent = NotificationHolder
+			Parent = NotificationHolder,
+			BackgroundTransparency = 1
 		})
 
-		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(25, 25, 25), 0, 10), {
-			Parent = NotificationParent, 
+		local NotificationFrame = SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0.6, 12), {
+			Parent = NotificationParent,
 			Size = UDim2.new(1, 0, 0, 0),
 			Position = UDim2.new(1, -55, 0, 0),
-			BackgroundTransparency = 0,
-			AutomaticSize = Enum.AutomaticSize.Y
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 0.6, -- Semi-transparent
+			BorderSizePixel = 0,
 		}), {
-			MakeElement("Stroke", Color3.fromRGB(93, 93, 93), 1.2),
+			-- Glass border (light stroke)
+			MakeElement("Stroke", Color3.fromRGB(255, 255, 255), 1.2, 0.3), -- 0.3 transparency stroke
+			-- Soft padding
 			MakeElement("Padding", 12, 12, 12, 12),
-			SetProps(MakeElement("Image", NotificationConfig.Image), {
-				Size = UDim2.new(0, 20, 0, 20),
-				ImageColor3 = Color3.fromRGB(240, 240, 240),
-				Name = "Icon"
+			-- Light gradient (adds subtle shine)
+			SetProps(Instance.new("UIGradient"), {
+				Color = ColorSequence.new{
+					ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+					ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
+				},
+				Transparency = NumberSequence.new{
+					NumberSequenceKeypoint.new(0, 0.75),
+					NumberSequenceKeypoint.new(1, 1)
+				},
+				Rotation = 45,
+				Name = "GlassGradient",
+				Parent = nil -- We add it to NotificationFrame below manually
 			}),
-			SetProps(MakeElement("Label", NotificationConfig.Name, 15), {
+
+			-- Icon
+			SetProps(MakeElement("Image", image), {
+				Name = "Icon",
+				Size = UDim2.new(0, 20, 0, 20),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+			}),
+
+			-- Title text
+			SetProps(MakeElement("Label", name, 15), {
+				Name = "Title",
+				Font = Enum.Font.GothamBold,
 				Size = UDim2.new(1, -30, 0, 20),
 				Position = UDim2.new(0, 30, 0, 0),
-				Font = Enum.Font.GothamBold,
-				Name = "Title"
+				TextColor3 = Color3.fromRGB(235, 235, 235),
+				TextTransparency = 0.1
 			}),
-			SetProps(MakeElement("Label", NotificationConfig.Content, 14), {
+
+			-- Content text
+			SetProps(MakeElement("Label", content, 14), {
+				Name = "Content",
+				Font = Enum.Font.GothamSemibold,
 				Size = UDim2.new(1, 0, 0, 0),
 				Position = UDim2.new(0, 0, 0, 25),
-				Font = Enum.Font.GothamSemibold,
-				Name = "Content",
 				AutomaticSize = Enum.AutomaticSize.Y,
 				TextColor3 = Color3.fromRGB(200, 200, 200),
-				TextWrapped = true
+				TextTransparency = 0.15,
+				TextWrapped = true,
 			})
 		})
 
-		TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+		-- Parent gradient after building children
+		NotificationFrame.GlassGradient.Parent = NotificationFrame
 
-		wait(NotificationConfig.Time - 0.88)
+		-- Tween In
+		TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {
+			Position = UDim2.new(0, 0, 0, 0)
+		}):Play()
+
+		wait(duration - 0.88)
+
+		-- Fade Out Elements
 		TweenService:Create(NotificationFrame.Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
-		TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.6}):Play()
+		TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.8}):Play()
 		wait(0.3)
 		TweenService:Create(NotificationFrame.UIStroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency = 0.9}):Play()
-		TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.4}):Play()
-		TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.5}):Play()
+		TweenService:Create(NotificationFrame.Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.7}):Play()
+		TweenService:Create(NotificationFrame.Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.8}):Play()
 		wait(0.05)
 
-		NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0),'In','Quint',0.8,true)
+		NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0), 'In', 'Quint', 0.8, true)
 		wait(1.35)
 		NotificationFrame:Destroy()
 	end)
-end    
+end
 
 function OrionLib:Init()
 	if OrionLib.SaveCfg then	
@@ -571,14 +607,14 @@ function OrionLib:MakeWindow(WindowConfig)
 	local UIHidden = false
 
 	WindowConfig = WindowConfig or {}
-	WindowConfig.Name = WindowConfig.Name or "Mercury's FE Script Hub"
+	WindowConfig.Name = WindowConfig.Name or "Enforcer's Library"
 	WindowConfig.ConfigFolder = WindowConfig.ConfigFolder or WindowConfig.Name
 	WindowConfig.SaveConfig = WindowConfig.SaveConfig or false
 	WindowConfig.HidePremium = WindowConfig.HidePremium or false
 	if WindowConfig.IntroEnabled == nil then
 		WindowConfig.IntroEnabled = true
 	end
-	WindowConfig.IntroText = WindowConfig.IntroText or "Mercury's FE Script Hub"
+	WindowConfig.IntroText = WindowConfig.IntroText or "Enforcer's Library"
 	WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end
 	WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
 	WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"
