@@ -184,36 +184,64 @@ task.spawn(function()
 	end
 end)
 
-local function MakeDraggable(DragPoint, Main)
-	pcall(function()
-		local Dragging, DragInput, MousePos, FramePos = false
-		AddConnection(DragPoint.InputBegan, function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Dragging = true
-				MousePos = Input.Position
-				FramePos = Main.Position
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
-				Input.Changed:Connect(function()
-					if Input.UserInputState == Enum.UserInputState.End then
-						Dragging = false
-					end
-				end)
-			end
-		end)
-		AddConnection(DragPoint.InputChanged, function(Input)
-			if Input.UserInputType == Enum.UserInputType.MouseMovement then
-				DragInput = Input
-			end
-		end)
-		AddConnection(UserInputService.InputChanged, function(Input)
-			if Input == DragInput and Dragging then
-				local Delta = Input.Position - MousePos
-				--TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
-				Main.Position  = UDim2.new(FramePos.X.Scale,FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
-			end
-		end)
-	end)
-end    
+-- Utility function to add connections (assuming you have this)
+local function AddConnection(event, callback)
+    return event:Connect(callback)
+end
+
+local function MakeDraggable(DragPoint, Main)
+    pcall(function()
+        local Dragging = false
+        local DragInput = nil
+        local MousePos = nil
+        local FramePos = nil
+
+        -- Input began on DragPoint
+        AddConnection(DragPoint.InputBegan, function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                Dragging = true
+                MousePos = input.Position
+                FramePos = Main.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        Dragging = false
+                    end
+                end)
+            end
+        end)
+
+        -- Track the input movement for dragging
+        AddConnection(DragPoint.InputChanged, function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                DragInput = input
+            end
+        end)
+
+        -- Update the position as mouse moves
+        AddConnection(UserInputService.InputChanged, function(input)
+            if input == DragInput and Dragging then
+                local delta = input.Position - MousePos
+                local newX = FramePos.X.Scale
+                local newY = FramePos.Y.Scale
+                local newXOffset = FramePos.X.Offset + delta.X
+                local newYOffset = FramePos.Y.Offset + delta.Y
+
+                -- Optionally use Tween for smooth movement:
+                -- TweenService:Create(Main, TweenInfo.new(0.05, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                --     Position = UDim2.new(newX, newXOffset, newY, newYOffset)
+                -- }):Play()
+
+                -- Immediate position update (uncomment above to enable tweening)
+                Main.Position = UDim2.new(newX, newXOffset, newY, newYOffset)
+            end
+        end)
+    end)
+end
+
 
 local function Create(Name, Properties, Children)
 	local Object = Instance.new(Name)
