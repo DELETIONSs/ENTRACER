@@ -531,6 +531,8 @@ CreateElement("Image", function(ImageID)
 
 	if GetIcon(ImageID) ~= nil then
 		ImageNew.Image = GetIcon(ImageID)
+        ImageNew.Image.ImageRectOffset = asset.imageRectOffset
+		ImageNew.Image.ImageRectSize = asset.imageRectSize
 	end	
 
 	return ImageNew
@@ -1519,22 +1521,57 @@ function OrionLib:MakeWindow(WindowConfig)
 					end
 				end)
 
-				AddConnection(Click.MouseEnter, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
-				end)
+local ThemeColor = OrionLib.Themes[OrionLib.SelectedTheme].Second
 
-				AddConnection(Click.MouseLeave, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
-				end)
+AddConnection(Click.MouseEnter, function()
+	TweenService:Create(
+		BindFrame,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+		{
+			BackgroundColor3 = Color3.fromRGB(
+				ThemeColor.R * 255 + 3,
+				ThemeColor.G * 255 + 3,
+				ThemeColor.B * 255 + 3
+			)
+		}
+	):Play()
+end)
 
-				AddConnection(Click.MouseButton1Up, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
-				end)
+AddConnection(Click.MouseLeave, function()
+	TweenService:Create(
+		BindFrame,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+		{ BackgroundColor3 = ThemeColor }
+	):Play()
+end)
 
-				AddConnection(Click.MouseButton1Down, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
-				end)
+AddConnection(Click.MouseButton1Up, function()
+	TweenService:Create(
+		BindFrame,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+		{
+			BackgroundColor3 = Color3.fromRGB(
+				ThemeColor.R * 255 + 3,
+				ThemeColor.G * 255 + 3,
+				ThemeColor.B * 255 + 3
+			)
+		}
+	):Play()
+end)
 
+AddConnection(Click.MouseButton1Down, function()
+	TweenService:Create(
+		BindFrame,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+		{
+			BackgroundColor3 = Color3.fromRGB(
+				ThemeColor.R * 255 + 6,
+				ThemeColor.G * 255 + 6,
+				ThemeColor.B * 255 + 6
+			)
+		}
+	):Play()
+end)
 				function Bind:Set(Key)
 					Bind.Binding = false
 					Bind.Value = Key or Bind.Value
