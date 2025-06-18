@@ -48,6 +48,11 @@ local function GetIcon(IconName)
 	end
 end   
 	
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+
 local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enableTaptic, tapticOffset, hiddenState, useMobileSizing)
 	local dragging = false
 	local relative = nil
@@ -58,9 +63,11 @@ local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enabl
 		offset += GuiService:GetGuiInset()
 	end
 
+	-- Store hover connections to avoid duplicate connects
+	local hoverConnEntered, hoverConnLeft
 	local function connectHoverAnimations()
-		if dragBar and enableTaptic then
-			dragBar.MouseEnter:Connect(function()
+		if dragBar and enableTaptic and (not hoverConnEntered and not hoverConnLeft) then
+			hoverConnEntered = dragBar.MouseEnter:Connect(function()
 				if not dragging and not hiddenState then
 					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 						BackgroundTransparency = 0.5,
@@ -68,8 +75,7 @@ local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enabl
 					}):Play()
 				end
 			end)
-
-			dragBar.MouseLeave:Connect(function()
+			hoverConnLeft = dragBar.MouseLeave:Connect(function()
 				if not dragging and not hiddenState then
 					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 						BackgroundTransparency = 0.7,
@@ -83,6 +89,7 @@ local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enabl
 	connectHoverAnimations()
 
 	-- Drag start
+	local inputEnded
 	dragObject.InputBegan:Connect(function(input, processed)
 		if processed then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -99,11 +106,12 @@ local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enabl
 	end)
 
 	-- Drag end
-	local inputEnded = UserInputService.InputEnded:Connect(function(input)
+	inputEnded = UserInputService.InputEnded:Connect(function(input)
 		if not dragging then return end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
-			connectHoverAnimations()
+			-- reconnect hover animations if needed (but connections only once now)
+			-- connectHoverAnimations() -- no longer needed since connected once
 
 			if enableTaptic and not hiddenState then
 				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
@@ -141,6 +149,8 @@ local function makeDraggable(object, dragObject, dragBar, dragBarCosmetic, enabl
 	object.Destroying:Connect(function()
 		if inputEnded then inputEnded:Disconnect() end
 		if renderStepped then renderStepped:Disconnect() end
+		if hoverConnEntered then hoverConnEntered:Disconnect() end
+		if hoverConnLeft then hoverConnLeft:Disconnect() end
 	end)
 end
 
