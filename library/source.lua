@@ -1,5 +1,7 @@
 if debugX then
-	warn('Initialising Rayfield')
+	warn('setting up environment.')
+	warn('orion library remake by entracer.')
+	print('setup success')
 end
 
 local function grab(name)
